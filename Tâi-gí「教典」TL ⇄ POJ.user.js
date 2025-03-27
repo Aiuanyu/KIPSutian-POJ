@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.0b
+// @version      2.0b2
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
@@ -73,13 +73,35 @@
     // 共文字對臺羅轉做白話字
     function applyPOJTransformation(node) {
         if (node.nodeType === Node.TEXT_NODE) {
-            // 收囥原始文字
-            if (!originalTextMap.has(node)) {
-                originalTextMap.set(node, node.nodeValue);
+            let text = node.nodeValue;
+            const originalText = text;
+            const exceptions = [];
+            const regex = /\(([a-zA-Z]+)\)/g;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                exceptions.push({
+                    start: match.index,
+                    end: match.index + match[0].length,
+                    original: match[0]
+                });
             }
 
-            let text = node.nodeValue;
-            text = text.normalize('NFD').normalize('NFC');
+            // 先共欲排除个部份用一个暫時个字串取代，才袂予轉換
+            let tempText = text;
+            const tempMarkers = {};
+            exceptions.forEach((exception, index) => {
+                const marker = `__TEMP_EXCEPTION_${index}__`;
+                tempMarkers[marker] = exception.original;
+                tempText = tempText.substring(0, exception.start) + marker + tempText.substring(exception.end);
+            });
+
+            // 收囥原始文字 (排除例外以後)
+            if (!originalTextMap.has(node)) {
+                originalTextMap.set(node, originalText);
+            }
+
+            text = tempText.normalize('NFD').normalize('NFC');
 
             // ts → ch
             text = text.replace(/(?<=^|\W)ts/gi, function(match) { return (match[0] === 'T' ? 'Ch' : 'ch'); });
@@ -141,7 +163,7 @@
 
             // or → o (白話字無分 o、or)
             text = text.replace(/or/gi, function(match) { return (match[0] === 'O' ? 'O' : 'o'); });
-            text = text.replace(/or/gi, function(match) { return (match[0] === 'Ó' ? 'Ó' : 'ó'); });
+            text = text.replace(/ór/gi, function(match) { return (match[0] === 'Ó' ? 'Ó' : 'ó'); });
             text = text.replace(/òr/gi, function(match) { return (match[0] === 'Ò' ? 'Ò' : 'ò'); });
             text = text.replace(/ôr/gi, function(match) { return (match[0] === 'Ô' ? 'Ô' : 'ô'); });
             text = text.replace(/ǒr/gi, function(match) { return (match[0] === 'Ǒ' ? 'Õ' : 'õ'); });
@@ -203,6 +225,12 @@
             text = text.replace(/[Ǔǔ]/g, function(match) { return match[0] === 'Ǔ' ? 'Ũ' : 'ũ'; });
             text = text.replace(/[Mm]̌/g, function(match) { return match[0] === 'M' ? 'M̃' : 'm̃'; });
             text = text.replace(/[Ňň]g/g, function(match) { return match[0] === 'Ň' ? 'Ñg' : 'ñg'; });
+
+            // 共排除个例外囥轉原底个位置
+            Object.keys(tempMarkers).forEach(marker => {
+                const regexReplace = new RegExp(marker.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+                text = text.replace(regexReplace, tempMarkers[marker]);
+            });
 
             node.nodeValue = text;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
