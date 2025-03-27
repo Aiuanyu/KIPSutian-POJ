@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         「教典」TL → POJ
+// @name         Tâi-gí「教典」TL → POJ
 // @namespace    aiuanyu
 // @version      0.9
-// @description  Replaces specified patterns on sutian.moe.edu.tw once after page load (case-sensitive replacement).
+// @description  讓代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現 POJ！（臺羅全部代換）Replaces specified patterns on sutian.moe.edu.tw once after page load (case-sensitive replacement).
 // @author       Aiuanyu 愛灣語
 // @match        http*://sutian.moe.edu.tw/*
 // @grant        none
