@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL → POJ
 // @namespace    aiuanyu
-// @version      1.0
-// @description  讓代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現 POJ！（臺羅全部代換）Replaces specified patterns on sutian.moe.edu.tw once after page load (case-sensitive replacement).
+// @version      1.1
+// @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（臺羅全部代換）Replaces specified patterns on sutian.moe.edu.tw once after page load (case-sensitive replacement).
 // @author       Aiuanyu 愛灣語
 // @match        http*://sutian.moe.edu.tw/*
 // @grant        none
@@ -15,6 +15,7 @@
 
     function replaceText(node) {
         if (node.nodeType === Node.TEXT_NODE) {
+            //console.log("Text Node Value:", node.nodeValue); // 除錯時加入這行
             let text = node.nodeValue;
 
             // ts → ch (保留大小寫)
@@ -119,8 +120,8 @@
             text = text.replace(/i̍r/gi, function(match) { return (match[0] === 'I̍' ? 'Ṳ̍' : 'ṳ̍'); });
             text = text.replace(/i̋r/gi, function(match) { return (match[0] === 'I̋' ? 'Ṳ̆' : 'ṳ̆'); });
 
-            // nn → ⁿ (保留大小寫 - 但替換字元是固定的)
-            text = text.replace(/nn/gi, 'ⁿ');
+            // nn → ⁿ (只有當 nn 的後面是空格或 - hyphen 時才取代)
+            text = text.replace(/nn(?=[ \-,\.!\?/]|\s*$)/gi, 'ⁿ');
 
             // ing → eng (保留大小寫)
             text = text.replace(/ing/gi, function(match) {
