@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.0b2
+// @version      2.0b3
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
@@ -204,7 +204,7 @@
             text = text.replace(/îng/gi, function(match) { return (match[0] === 'Î' ? 'Ê' : 'ê') + 'ng'; });
             text = text.replace(/ǐng/gi, function(match) { return (match[0] === 'Ǐ' ? 'Ẽ' : 'ẽ') + 'ng'; });
             text = text.replace(/īng/gi, function(match) { return (match[0] === 'Ī' ? 'Ē' : 'ē') + 'ng'; });
-            text = text.replace(/i̋ng/gi, function(match) { return (match[0] === 'I' ? 'Ě' : 'ě') + 'ng'; });
+            text = text.replace(/i̋ng/gi, function(match) { return (match[0] === 'I' ? 'Ĕ' : 'ĕ') + 'ng'; });
 
             // ik → ek
             text = text.replace(/ik/gi, function(match) { return (match[0] === 'I' ? 'E' : 'e') + 'k'; });
