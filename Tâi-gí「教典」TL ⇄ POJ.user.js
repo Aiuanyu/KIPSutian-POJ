@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.0b3
+// @version      2.0
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
@@ -191,8 +191,8 @@
             text = text.replace(/i̍r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̍' : 'ṳ̍'); });
             text = text.replace(/i̋r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̆' : 'ṳ̆'); });
 
-            // nn → ⁿ (干焦 nn 佇音節尾的時才會換)
-            text = text.replace(/nn(?=\W|$)/gi, 'ⁿ');
+            // nn → ⁿ (干焦 nn 後壁是空隙抑 - hyphen 時才取代)
+            text = text.replace(/nn(?=[ \-,\.!\?/]|\s*$)/gi, 'ⁿ');
 
             // nnh → hⁿ (干焦 nnh 佇音節尾的時才會換)
             text = text.replace(/nnh(?=\W|$)/gi, 'hⁿ');
