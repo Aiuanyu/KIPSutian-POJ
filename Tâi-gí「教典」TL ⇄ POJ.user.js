@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.1
+// @version      2.1.1
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
