@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.1.1
+// @version      2.2.0
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
@@ -17,8 +17,57 @@
     // 預設使用 POJ
     let usePOJ = localStorage.getItem('sutianUsePOJ') !== 'false';
 
+    // Add a flag for Wiktionary mode (default to off)
+    let useWiktionaryMode = localStorage.getItem('sutianUseWiktionaryMode') === 'true';
+
     // 囥原始文字的 mapping table
     const originalTextMap = new WeakMap();
+
+    // Create Wiktionary mode toggle
+    function createWiktionaryToggle() {
+        const toggle = document.createElement('button');
+        toggle.id = 'wiktionary-toggle-btn';
+        toggle.textContent = useWiktionaryMode ? 'Wikt Mode: ON' : 'Wikt Mode: OFF';
+        toggle.style.position = 'fixed';
+        toggle.style.bottom = '80px';
+        toggle.style.left = '20px';
+        toggle.style.zIndex = '9999';
+        toggle.style.padding = '8px 12px';
+        toggle.style.backgroundColor = useWiktionaryMode ? '#27ae60' : '#95a5a6';
+        toggle.style.color = 'white';
+        toggle.style.border = 'none';
+        toggle.style.borderRadius = '4px';
+        toggle.style.cursor = 'pointer';
+        toggle.style.fontWeight = 'bold';
+        toggle.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        toggle.style.fontSize = '14px';
+
+        // Hover effects
+        toggle.addEventListener('mouseover', function() {
+            this.style.backgroundColor = useWiktionaryMode ? '#219653' : '#7f8c8d';
+        });
+
+        toggle.addEventListener('mouseout', function() {
+            this.style.backgroundColor = useWiktionaryMode ? '#27ae60' : '#95a5a6';
+        });
+
+        // Toggle Wiktionary mode
+        toggle.addEventListener('click', function() {
+            useWiktionaryMode = !useWiktionaryMode;
+            localStorage.setItem('sutianUseWiktionaryMode', useWiktionaryMode);
+
+            this.textContent = useWiktionaryMode ? 'Wikt Mode: ON' : 'Wikt Mode: OFF';
+            this.style.backgroundColor = useWiktionaryMode ? '#27ae60' : '#95a5a6';
+
+            // Refresh the current view if we're in POJ mode
+            if (usePOJ) {
+                restoreOriginalText(document.body);
+                applyPOJTransformation(document.body);
+            }
+        });
+
+        document.body.appendChild(toggle);
+    }
 
     // 切換揤鈕
     function createToggleButton() {
@@ -73,6 +122,13 @@
     // 共文字對臺羅轉做白話字
     function applyPOJTransformation(node) {
         if (node.nodeType === Node.TEXT_NODE) {
+            let parent = node.parentNode;
+            while (parent) {
+                if (parent.id === 'poj-toggle-btn' || parent.id === 'wiktionary-toggle-btn') {
+                    return; // 跳過揤鈕文字
+                }
+                parent = parent.parentNode;
+            }
             let text = node.nodeValue;
             const originalText = text;
             const exceptions = [];
@@ -151,15 +207,38 @@
             text = text.replace(/o̍oh(?=\W|$)/gi, function(match) { return (match[0] === 'O' ? 'O̍͘h' : 'o̍͘h'); });
             text = text.replace(/őo(?=\W|$)/gi, function(match) { return (match[0] === 'Ő' ? 'Ŏ͘' : 'ŏ͘'); });
 
-            // ee → e͘
-            text = text.replace(/ee/gi, function(match) { return (match[0] === 'E' ? 'E͘' : 'e͘'); });
-            text = text.replace(/ée/gi, function(match) { return (match[0] === 'É' ? 'É͘' : 'é͘'); });
-            text = text.replace(/èe/gi, function(match) { return (match[0] === 'È' ? 'È͘' : 'è͘'); });
-            text = text.replace(/êe/gi, function(match) { return (match[0] === 'Ê' ? 'Ê͘' : 'ê͘'); });
-            text = text.replace(/ěe/gi, function(match) { return (match[0] === 'Ě' ? 'Ẽ͘' : 'ẽ͘'); });
-            text = text.replace(/ēe/gi, function(match) { return (match[0] === 'Ē' ? 'Ē͘' : 'ē͘'); });
-            text = text.replace(/e̍e/gi, function(match) { return (match[0] === 'E' ? 'E̍͘' : 'e̍͘'); });
-            text = text.replace(/e̋e/gi, function(match) { return (match[0] === 'E' ? 'Ĕ͘' : 'ĕ͘'); });
+            // The following conversions should only run if Wiktionary mode is OFF
+            if (!useWiktionaryMode) {
+                // ee → e͘
+                text = text.replace(/ee/gi, function(match) { return (match[0] === 'E' ? 'E͘' : 'e͘'); });
+                text = text.replace(/ée/gi, function(match) { return (match[0] === 'É' ? 'É͘' : 'é͘'); });
+                text = text.replace(/èe/gi, function(match) { return (match[0] === 'È' ? 'È͘' : 'è͘'); });
+                text = text.replace(/êe/gi, function(match) { return (match[0] === 'Ê' ? 'Ê͘' : 'ê͘'); });
+                text = text.replace(/ěe/gi, function(match) { return (match[0] === 'Ě' ? 'Ẽ͘' : 'ẽ͘'); });
+                text = text.replace(/ēe/gi, function(match) { return (match[0] === 'Ē' ? 'Ē͘' : 'ē͘'); });
+                text = text.replace(/e̍e/gi, function(match) { return (match[0] === 'E' ? 'E̍͘' : 'e̍͘'); });
+                text = text.replace(/e̋e/gi, function(match) { return (match[0] === 'E' ? 'Ĕ͘' : 'ĕ͘'); });
+
+                // er → o̤
+                text = text.replace(/er/gi, function(match) { return (match[0] === 'E' ? 'O̤' : 'o̤'); });
+                text = text.replace(/ér/gi, function(match) { return (match[0] === 'É' ? 'Ó̤' : 'ó̤'); });
+                text = text.replace(/èr/gi, function(match) { return (match[0] === 'È' ? 'Ò̤' : 'ò̤'); });
+                text = text.replace(/êr/gi, function(match) { return (match[0] === 'Ê' ? 'Ô̤' : 'ô̤'); });
+                text = text.replace(/ěr/gi, function(match) { return (match[0] === 'Ě' ? 'Õ̤' : 'õ̤'); });
+                text = text.replace(/ēr/gi, function(match) { return (match[0] === 'Ē' ? 'Ō̤' : 'ō̤'); });
+                text = text.replace(/e̍r/gi, function(match) { return (match[0] === 'E' ? 'O̤̍' : 'o̤̍'); });
+                text = text.replace(/e̋r/gi, function(match) { return (match[0] === 'E' ? 'Ŏ̤' : 'ŏ̤'); });
+
+                // ir → ṳ
+                text = text.replace(/ir/gi, function(match) { return (match[0] === 'I' ? 'Ṳ' : 'ṳ'); });
+                text = text.replace(/ír/gi, function(match) { return (match[0] === 'Í' ? 'Ṳ́' : 'ṳ́'); });
+                text = text.replace(/ìr/gi, function(match) { return (match[0] === 'Ì' ? 'Ṳ̀' : 'ṳ̀'); });
+                text = text.replace(/îr/gi, function(match) { return (match[0] === 'Î' ? 'Ṳ̂' : 'ṳ̂'); });
+                text = text.replace(/ǐr/gi, function(match) { return (match[0] === 'Ǐ' ? 'Ṳ̃' : 'ṳ̃'); });
+                text = text.replace(/īr/gi, function(match) { return (match[0] === 'Ī' ? 'Ṳ̄' : 'ṳ̄'); });
+                text = text.replace(/i̍r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̍' : 'ṳ̍'); });
+                text = text.replace(/i̋r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̆' : 'ṳ̆'); });
+            }
 
             // or → o (白話字無分 o、or)
             text = text.replace(/or/gi, function(match) { return (match[0] === 'O' ? 'O' : 'o'); });
@@ -170,26 +249,6 @@
             text = text.replace(/ōr/gi, function(match) { return (match[0] === 'Ō' ? 'Ō' : 'ō'); });
             text = text.replace(/o̍r/gi, function(match) { return (match[0] === 'O' ? 'O̍' : 'o̍'); });
             text = text.replace(/őr/gi, function(match) { return (match[0] === 'Ő' ? 'Ŏ' : 'ŏ'); });
-
-            // er → o̤
-            text = text.replace(/er/gi, function(match) { return (match[0] === 'E' ? 'O̤' : 'o̤'); });
-            text = text.replace(/ér/gi, function(match) { return (match[0] === 'É' ? 'Ó̤' : 'ó̤'); });
-            text = text.replace(/èr/gi, function(match) { return (match[0] === 'È' ? 'Ò̤' : 'ò̤'); });
-            text = text.replace(/êr/gi, function(match) { return (match[0] === 'Ê' ? 'Ô̤' : 'ô̤'); });
-            text = text.replace(/ěr/gi, function(match) { return (match[0] === 'Ě' ? 'Õ̤' : 'õ̤'); });
-            text = text.replace(/ēr/gi, function(match) { return (match[0] === 'Ē' ? 'Ō̤' : 'ō̤'); });
-            text = text.replace(/e̍r/gi, function(match) { return (match[0] === 'E' ? 'O̤̍' : 'o̤̍'); });
-            text = text.replace(/e̋r/gi, function(match) { return (match[0] === 'E' ? 'Ŏ̤' : 'ŏ̤'); });
-
-            // ir → ṳ
-            text = text.replace(/ir/gi, function(match) { return (match[0] === 'I' ? 'Ṳ' : 'ṳ'); });
-            text = text.replace(/ír/gi, function(match) { return (match[0] === 'Í' ? 'Ṳ́' : 'ṳ́'); });
-            text = text.replace(/ìr/gi, function(match) { return (match[0] === 'Ì' ? 'Ṳ̀' : 'ṳ̀'); });
-            text = text.replace(/îr/gi, function(match) { return (match[0] === 'Î' ? 'Ṳ̂' : 'ṳ̂'); });
-            text = text.replace(/ǐr/gi, function(match) { return (match[0] === 'Ǐ' ? 'Ṳ̃' : 'ṳ̃'); });
-            text = text.replace(/īr/gi, function(match) { return (match[0] === 'Ī' ? 'Ṳ̄' : 'ṳ̄'); });
-            text = text.replace(/i̍r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̍' : 'ṳ̍'); });
-            text = text.replace(/i̋r/gi, function(match) { return (match[0] === 'I' ? 'Ṳ̆' : 'ṳ̆'); });
 
             // nn → ⁿ (干焦 nn 後壁是空隙抑 - hyphen 時才取代)
             text = text.replace(/nn(?=[ \-,\.!\?/]|\s*$)/gi, 'ⁿ');
@@ -218,13 +277,16 @@
             text = text.replace(/[Mm]̋/g, function(match) { return match[0] === 'M' ? 'M̆' : 'm̆'; });
             text = text.replace(/[Nn]̋g/g, function(match) { return match[0] === 'N' ? 'N̆g' : 'n̆g'; });
 
-            text = text.replace(/[Ǎǎ]/g, function(match) { return match[0] === 'Ǎ' ? 'Ã' : 'ã'; });
-            text = text.replace(/[Ěě]/g, function(match) { return match[0] === 'Ě' ? 'Ẽ' : 'ẽ'; });
-            text = text.replace(/[Ǐǐ]/g, function(match) { return match[0] === 'Ǐ' ? 'Ĩ' : 'ĩ'; });
-            text = text.replace(/[Ǒǒ]/g, function(match) { return match[0] === 'Ǒ' ? 'Õ' : 'õ'; });
-            text = text.replace(/[Ǔǔ]/g, function(match) { return match[0] === 'Ǔ' ? 'Ũ' : 'ũ'; });
-            text = text.replace(/[Mm]̌/g, function(match) { return match[0] === 'M' ? 'M̃' : 'm̃'; });
-            text = text.replace(/[Ňň]g/g, function(match) { return match[0] === 'Ň' ? 'Ñg' : 'ñg'; });
+            // Only convert sixth tone if not in Wiktionary mode
+            if (!useWiktionaryMode) {
+                text = text.replace(/[Ǎǎ]/g, function(match) { return match[0] === 'Ǎ' ? 'Ã' : 'ã'; });
+                text = text.replace(/[Ěě]/g, function(match) { return match[0] === 'Ě' ? 'Ẽ' : 'ẽ'; });
+                text = text.replace(/[Ǐǐ]/g, function(match) { return match[0] === 'Ǐ' ? 'Ĩ' : 'ĩ'; });
+                text = text.replace(/[Ǒǒ]/g, function(match) { return match[0] === 'Ǒ' ? 'Õ' : 'õ'; });
+                text = text.replace(/[Ǔǔ]/g, function(match) { return match[0] === 'Ǔ' ? 'Ũ' : 'ũ'; });
+                text = text.replace(/[Mm]̌/g, function(match) { return match[0] === 'M' ? 'M̃' : 'm̃'; });
+                text = text.replace(/[Ňň]g/g, function(match) { return match[0] === 'Ň' ? 'Ñg' : 'ñg'; });
+            }
 
             // 共排除个例外囥轉原底个位置
             Object.keys(tempMarkers).forEach(marker => {
@@ -235,7 +297,7 @@
             node.nodeValue = text;
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             // 排除切換揤鈕
-            if (node.id !== 'poj-toggle-btn') {
+            if (node.id !== 'poj-toggle-btn' && node.id !== 'wiktionary-toggle-btn') {
                 for (let i = 0; i < node.childNodes.length; i++) {
                     applyPOJTransformation(node.childNodes[i]);
                 }
@@ -251,7 +313,7 @@
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             // 共切換按鈕跳過
-            if (node.id !== 'poj-toggle-btn') {
+            if (node.id !== 'poj-toggle-btn' && node.id !== 'wiktionary-toggle-btn') {
                 for (let i = 0; i < node.childNodes.length; i++) {
                     restoreOriginalText(node.childNodes[i]);
                 }
@@ -267,7 +329,7 @@
                     for (let i = 0; i < mutation.addedNodes.length; i++) {
                         const node = mutation.addedNodes[i];
                         // 共切換按鈕跳過
-                        if (node.id === 'poj-toggle-btn') continue;
+                        if (node.id === 'poj-toggle-btn' || node.id === 'wiktionary-toggle-btn') continue;
 
                         // 若這馬咧用 POJ，就使用轉換
                         if (usePOJ) {
@@ -284,6 +346,7 @@
     // 頁面載入的時陣原初化
     window.addEventListener('load', function() {
         createToggleButton();
+        createWiktionaryToggle(); // Create the new Wiktionary mode toggle
         setupMutationObserver();
 
         // 根據使用者的選擇來決定頭起先顯示的方式
