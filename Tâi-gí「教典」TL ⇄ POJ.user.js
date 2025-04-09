@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tâi-gí「教典」TL ⇄ POJ
 // @namespace    aiuanyu
-// @version      2.2.0
+// @version      2.2.1
 // @description  予代管當局 ROC 教育部 Tâi-gí 常用詞詞典網站呈現出 POJ！（對臺羅換過來、換轉去）
 // @author       Aiuanyu 愛灣語, TongcyDai
 // @match        http*://sutian.moe.edu.tw/*
@@ -163,8 +163,12 @@
             text = text.replace(/(?<=^|\W)ts/gi, function(match) { return (match[0] === 'T' ? 'Ch' : 'ch'); });
 
             // ua → oa
-            // 處理 ua 後面接 i、n、t、h 的情形 (調符徙去 a 頂懸)
-            text = text.replace(/u([aáàâǎāa̍a̋])([inth](?:\W|$))/gi, function(match, vowel, end) { return (match[0] === 'U' ? 'O' : 'o') + vowel + end; });
+            // 處理 ua 後面接 i、n、t、h 的情形 (調符徙去 a 頂懸)；注意 ua̍ ua̋ 是組合字元愛特別處理
+            text = text.replace(/u(?:(a(?:[\u030d\u030b]))|([aáàâǎā]))([inth](?:\W|$))/gi, function(match, combinedA, precomposedA, end) {
+              const theVowel = combinedA || precomposedA;
+              const prefix = (match[0] === 'U' ? 'O' : 'o');
+              return prefix + theVowel + end;
+            });
 
             // 處理孤一个 ua 抑是後壁接 nn 的情形 (調符徙去 o 頂懸，nn 上尾才換)
             text = text.replace(/ua(?=nn\W|nn$|\W|$)/gi, function(match) { return (match[0] === 'U' ? 'O' : 'o') + 'a'; });
